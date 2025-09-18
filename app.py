@@ -27,14 +27,7 @@ def index():
     # ファイルから最新の献立データを読み込む
     recipes = load_recipes()
     
-    # 探索結果ページから戻ってきた場合のURLパラメータを取得
-    search_ingredients_str = request.args.get('search_ingredients', '')
-    missing_count_str = request.args.get('missing_count', '0')
-    
-    return render_template('index.html', 
-                           recipes=recipes,
-                           search_ingredients_str=search_ingredients_str,
-                           missing_count_str=missing_count_str)
+    return render_template('index.html', recipes=recipes)
 
 @app.route('/add_recipe', methods=['GET', 'POST'])
 def add_recipe():
@@ -48,6 +41,25 @@ def add_recipe():
         save_recipes(recipes)
         return redirect(url_for('index'))
     return render_template('add_recipe.html')
+
+@app.route('/edit_recipe/<title>', methods=['GET', 'POST'])
+def edit_recipe(title):
+    recipes = load_recipes()
+    recipe = next((r for r in recipes if r['title'] == title), None)
+    if recipe is None:
+        return redirect(url_for('index'))
+
+    if request.method == 'POST':
+        new_title = request.form['title']
+        ingredients_list = request.form.getlist('ingredient')
+        new_ingredients = [i.strip() for i in ingredients_list if i.strip()]
+
+        recipe['title'] = new_title
+        recipe['ingredients'] = new_ingredients
+        save_recipes(recipes)
+        return redirect(url_for('index'))
+    
+    return render_template('edit_recipe.html', recipe=recipe)
 
 @app.route('/delete_recipe/<title>', methods=['POST'])
 def delete_recipe(title):
@@ -72,14 +84,4 @@ def search():
             if search_ingredients_set.issubset(required_ingredients):
                 results.append(recipe)
         elif search_type == 'or':
-            if not search_ingredients_set.isdisjoint(required_ingredients):
-                results.append(recipe)
-
-    return render_template('search_results.html', 
-                           results=results,
-                           search_ingredients=search_ingredients,
-                           search_type=search_type,
-                           recipes=recipes)
-
-if __name__ == '__main__':
-    app.run(debug=True)
+            if not search_ingredients_
