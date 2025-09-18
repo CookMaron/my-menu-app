@@ -7,7 +7,6 @@ from flask_sqlalchemy import SQLAlchemy
 app = Flask(__name__)
 
 # SQLiteデータベースファイルの場所を指定
-# このパスはRenderの「Disk」に合わせるのが推奨されます
 DB_FILE = os.path.join(os.path.abspath(os.path.dirname(__file__)), 'recipes.db')
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + DB_FILE
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
@@ -81,39 +80,4 @@ def edit_recipe(title):
     return render_template('edit_recipe.html', recipe=recipe)
 
 @app.route('/delete_recipe/<title>', methods=['POST'])
-def delete_recipe(title):
-    # データベースからレシピを検索して削除
-    recipe = Recipe.query.filter_by(title=title).first_or_404()
-    db.session.delete(recipe)
-    db.session.commit()
-    return redirect(url_for('index'))
-
-@app.route('/search', methods=['GET'])
-def search():
-    search_ingredients_list = request.args.getlist('search_ingredient')
-    search_ingredients = [s.strip() for s in search_ingredients_list if s.strip()]
-    search_type = request.args.get('search_type', 'or')
-
-    # データベースから全レシピを取得
-    recipes = Recipe.query.all()
-    results = []
-    
-    for recipe in recipes:
-        required_ingredients = set(recipe.ingredients)
-        search_ingredients_set = set(search_ingredients)
-        
-        if search_type == 'and':
-            if search_ingredients_set.issubset(required_ingredients):
-                results.append(recipe)
-        elif search_type == 'or':
-            if not search_ingredients_set.isdisjoint(required_ingredients):
-                results.append(recipe)
-    
-    return render_template('search_results.html', 
-                           results=results,
-                           search_ingredients=search_ingredients,
-                           search_type=search_type,
-                           recipes=recipes)
-
-if __name__ == '__main__':
-    app.run(debug=True)
+def delete_
