@@ -42,6 +42,12 @@ def add_recipe():
         return redirect(url_for('index'))
     return render_template('add_recipe.html')
 
+@app.route('/delete_recipe/<title>', methods=['POST'])
+def delete_recipe(title):
+    global recipes
+    recipes = [recipe for recipe in recipes if recipe['title'] != title]
+    return redirect(url_for('index'))
+
 @app.route('/search')
 def search():
     search_ingredients_str = request.args.get('search_ingredients', '')
@@ -61,4 +67,14 @@ def search():
         
         # 不足している食材の数が指定した数以下であれば、結果に追加
         if len(missing_ingredients) <= missing_count:
-            recipe_with_missing
+            recipe_with_missing = recipe.copy()
+            recipe_with_missing['missing'] = missing_ingredients
+            results.append(recipe_with_missing)
+
+    return render_template('search_results.html', 
+                           results=results,
+                           search_ingredients=search_ingredients,
+                           missing_count=missing_count)
+
+if __name__ == '__main__':
+    app.run(debug=True)
