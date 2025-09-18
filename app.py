@@ -22,15 +22,23 @@ def save_recipes(recipes):
     with open(DATA_FILE, 'w', encoding='utf-8') as f:
         json.dump(recipes, f, ensure_ascii=False, indent=4)
 
-recipes = load_recipes()
-
 @app.route('/')
 def index():
-    return render_template('index.html')
+    # ファイルから最新の献立データを読み込む
+    recipes = load_recipes()
+    
+    # 探索結果ページから戻ってきた場合のURLパラメータを取得
+    search_ingredients_str = request.args.get('search_ingredients', '')
+    missing_count_str = request.args.get('missing_count', '0')
+    
+    return render_template('index.html', 
+                           recipes=recipes,
+                           search_ingredients_str=search_ingredients_str,
+                           missing_count_str=missing_count_str)
 
 @app.route('/add_recipe', methods=['GET', 'POST'])
 def add_recipe():
-    global recipes
+    recipes = load_recipes()
     if request.method == 'POST':
         title = request.form['title']
         ingredients_list = request.form.getlist('ingredient')
@@ -43,7 +51,7 @@ def add_recipe():
 
 @app.route('/delete_recipe/<title>', methods=['POST'])
 def delete_recipe(title):
-    global recipes
+    recipes = load_recipes()
     recipes = [recipe for recipe in recipes if recipe['title'] != title]
     save_recipes(recipes)
     return redirect(url_for('index'))
@@ -54,17 +62,16 @@ def search():
     search_ingredients = [s.strip() for s in search_ingredients_list if s.strip()]
     search_type = request.args.get('search_type', 'or')
 
+    recipes = load_recipes()
     results = []
     for recipe in recipes:
         required_ingredients = set(recipe['ingredients'])
         search_ingredients_set = set(search_ingredients)
         
         if search_type == 'and':
-            # AND検索: 全ての食材が含まれているか
             if search_ingredients_set.issubset(required_ingredients):
                 results.append(recipe)
         elif search_type == 'or':
-            # OR検索: いずれかの食材が含まれているか
             if not search_ingredients_set.isdisjoint(required_ingredients):
                 results.append(recipe)
 
