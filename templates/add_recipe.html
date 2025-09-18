@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>献立の追加</title>
+</head>
+<body>
+    <h1>新しい献立を追加</h1>
+    <form method="POST">
+        <label for="title">料理名:</label><br>
+        <input type="text" id="title" name="title" required><br><br>
+        
+        <div id="ingredients-container">
+            <label>材料:</label><br>
+            <div class="ingredient-field">
+                <input type="text" name="ingredient" required>
+            </div>
+        </div>
+        <button type="button" onclick="addIngredientField()">材料を追加</button><br><br>
+        
+        <button type="submit">登録</button>
+    </form>
+    <a href="{{ url_for('index') }}">トップページに戻る</a>
+
+    <script>
+        function addIngredientField() {
+            const container = document.getElementById('ingredients-container');
+            const newDiv = document.createElement('div');
+            newDiv.className = 'ingredient-field';
+            newDiv.innerHTML = '<input type="text" name="ingredient" required> <button type="button" onclick="removeIngredientField(this)">削除</button>';
+            container.appendChild(newDiv);
+        }
+
+        function removeIngredientField(button) {
+            const field = button.parentNode;
+            field.parentNode.removeChild(field);
+        }
+    </script>
+</body>
+</html>

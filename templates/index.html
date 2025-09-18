@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>お母さんの献立</title>
+</head>
+<body>
+    <h1>お母さんの献立</h1>
+    <a href="{{ url_for('add_recipe') }}">新しい献立を追加する</a>
+    
+    <hr>
+    
+    <h2>献立を探索する</h2>
+    <form action="/search" method="GET">
+        <label for="search_ingredients">手持ちの食材 (カンマ区切り):</label><br>
+        <input type="text" id="search_ingredients" name="search_ingredients" value="{{ search_ingredients_str }}"><br><br>
+        <label for="missing_count">足りない食材の数 (0は完全一致):</label><br>
+        <input type="number" id="missing_count" name="missing_count" value="{{ missing_count_str }}" min="0"><br><br>
+        <button type="submit">探索</button>
+    </form>
+    <hr>
+    
+    <h2>登録済み献立</h2>
+    <ul>
+        {% for recipe in recipes %}
+        <li>
+            {{ recipe.title }} (材料: {{ ', '.join(recipe.ingredients) }})
+        </li>
+        {% endfor %}
+    </ul>
+</body>
+</html>
