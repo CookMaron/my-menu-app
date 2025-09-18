@@ -27,7 +27,14 @@ def index():
     # ファイルから最新の献立データを読み込む
     recipes = load_recipes()
     
-    return render_template('index.html', recipes=recipes)
+    # 探索結果ページから戻ってきた場合のURLパラメータを取得
+    search_ingredients_str = request.args.get('search_ingredients', '')
+    missing_count_str = request.args.get('missing_count', '0')
+    
+    return render_template('index.html', 
+                           recipes=recipes,
+                           search_ingredients_str=search_ingredients_str,
+                           missing_count_str=missing_count_str)
 
 @app.route('/add_recipe', methods=['GET', 'POST'])
 def add_recipe():
@@ -84,4 +91,14 @@ def search():
             if search_ingredients_set.issubset(required_ingredients):
                 results.append(recipe)
         elif search_type == 'or':
-            if not search_ingredients_
+            if not search_ingredients_set.isdisjoint(required_ingredients):
+                results.append(recipe)
+
+    return render_template('search_results.html', 
+                           results=results,
+                           search_ingredients=search_ingredients,
+                           search_type=search_type,
+                           recipes=recipes)
+
+if __name__ == '__main__':
+    app.run(debug=True)
