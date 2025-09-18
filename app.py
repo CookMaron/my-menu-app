@@ -10,8 +10,11 @@ DATA_FILE = 'recipes.json'
 def load_recipes():
     """データファイルから献立を読み込む"""
     if os.path.exists(DATA_FILE):
-        with open(DATA_FILE, 'r', encoding='utf-8') as f:
-            return json.load(f)
+        try:
+            with open(DATA_FILE, 'r', encoding='utf-8') as f:
+                return json.load(f)
+        except (json.JSONDecodeError, FileNotFoundError):
+            return []
     return []
 
 def save_recipes(recipes):
@@ -19,42 +22,20 @@ def save_recipes(recipes):
     with open(DATA_FILE, 'w', encoding='utf-8') as f:
         json.dump(recipes, f, ensure_ascii=False, indent=4)
 
-# 献立データ
 recipes = load_recipes()
 
 @app.route('/')
 def index():
-    # 探索結果ページから戻ってきた場合のURLパラメータを取得
-    search_ingredients_str = request.args.get('search_ingredients', '')
-    missing_count_str = request.args.get('missing_count', '0')
-    
-    return render_template('index.html', 
-                           recipes=recipes,
-                           search_ingredients_str=search_ingredients_str,
-                           missing_count_str=missing_count_str)
+    return render_template('index.html')
 
 @app.route('/add_recipe', methods=['GET', 'POST'])
 def add_recipe():
+    global recipes
     if request.method == 'POST':
         title = request.form['title']
-        
-        # 複数の入力欄からすべての材料名を取得
         ingredients_list = request.form.getlist('ingredient')
+        ingredients = [i.strip() for i in ingredients_list if i.strip()]
         
-        # 不要な空欄を削除し、カンマ区切りで統一
-        ingredients_set = set()
-        for item in ingredients_list:
-            # 全角の「、」を半角の「,」に置換し、スペースを削除
-            cleaned_item = item.replace('、', ',').strip()
-            # カンマで分割して、各材料をセットに追加
-            if cleaned_item:
-                for ingredient in cleaned_item.split(','):
-                    ingredient = ingredient.strip()
-                    if ingredient:
-                        ingredients_set.add(ingredient)
-        
-        ingredients = list(ingredients_set)
-
         recipes.append({'title': title, 'ingredients': ingredients})
         save_recipes(recipes)
         return redirect(url_for('index'))
@@ -67,16 +48,31 @@ def delete_recipe(title):
     save_recipes(recipes)
     return redirect(url_for('index'))
 
-@app.route('/search')
+@app.route('/search', methods=['GET'])
 def search():
-    search_ingredients_str = request.args.get('search_ingredients', '')
-    
-    # 全角の「、」を半角の「,」に置換する
-    search_ingredients_str = search_ingredients_str.replace('、', ',')
-    
-    search_ingredients = set(s.strip() for s in search_ingredients_str.split(',') if s.strip())
-    missing_count_str = request.args.get('missing_count', '0')
-    missing_count = int(missing_count_str)
+    search_ingredients_list = request.args.getlist('search_ingredient')
+    search_ingredients = [s.strip() for s in search_ingredients_list if s.strip()]
+    search_type = request.args.get('search_type', 'or')
 
     results = []
     for recipe in recipes:
+        required_ingredients = set(recipe['ingredients'])
+        search_ingredients_set = set(search_ingredients)
+        
+        if search_type == 'and':
+            # AND検索: 全ての食材が含まれているか
+            if search_ingredients_set.issubset(required_ingredients):
+                results.append(recipe)
+        elif search_type == 'or':
+            # OR検索: いずれかの食材が含まれているか
+            if not search_ingredients_set.isdisjoint(required_ingredients):
+                results.append(recipe)
+
+    return render_template('search_results.html', 
+                           results=results,
+                           search_ingredients=search_ingredients,
+                           search_type=search_type,
+                           recipes=recipes)
+
+if __name__ == '__main__':
+    app.run(debug=True)

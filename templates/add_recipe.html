@@ -13,7 +13,7 @@
         <div id="ingredients-container">
             <label>材料:</label><br>
             <div class="ingredient-field">
-                <input type="text" name="ingredient" required>
+                <input type="text" name="ingredient">
             </div>
         </div>
         <button type="button" onclick="addIngredientField()">材料を追加</button><br><br>
@@ -27,7 +27,7 @@
             const container = document.getElementById('ingredients-container');
             const newDiv = document.createElement('div');
             newDiv.className = 'ingredient-field';
-            newDiv.innerHTML = '<input type="text" name="ingredient" required> <button type="button" onclick="removeIngredientField(this)">削除</button>';
+            newDiv.innerHTML = '<input type="text" name="ingredient"> <button type="button" onclick="removeIngredientField(this)">削除</button>';
             container.appendChild(newDiv);
         }
 

@@ -11,11 +11,20 @@
     <hr>
     
     <h2>献立を探索する</h2>
-    <form action="/search" method="GET">
-        <label for="search_ingredients">手持ちの食材 (カンマ区切り):</label><br>
-        <input type="text" id="search_ingredients" name="search_ingredients" value="{{ search_ingredients_str }}"><br><br>
-        <label for="missing_count">足りない食材の数 (0は完全一致):</label><br>
-        <input type="number" id="missing_count" name="missing_count" value="{{ missing_count_str }}" min="0"><br><br>
+    <form action="{{ url_for('search') }}" method="GET">
+        <label>検索方法:</label>
+        <input type="radio" id="and_search" name="search_type" value="and" checked>
+        <label for="and_search">AND</label>
+        <input type="radio" id="or_search" name="search_type" value="or">
+        <label for="or_search">OR</label><br><br>
+
+        <div id="search-ingredients-container">
+            <label>手持ちの食材:</label><br>
+            <div class="ingredient-field">
+                <input type="text" name="search_ingredient">
+            </div>
+        </div>
+        <button type="button" onclick="addSearchIngredientField()">材料を追加</button>
         <button type="submit">探索</button>
     </form>
     <hr>
@@ -31,5 +40,20 @@
         </li>
         {% endfor %}
     </ul>
+
+    <script>
+        function addSearchIngredientField() {
+            const container = document.getElementById('search-ingredients-container');
+            const newDiv = document.createElement('div');
+            newDiv.className = 'ingredient-field';
+            newDiv.innerHTML = '<input type="text" name="search_ingredient"> <button type="button" onclick="removeSearchIngredientField(this)">削除</button>';
+            container.appendChild(newDiv);
+        }
+
+        function removeSearchIngredientField(button) {
+            const field = button.parentNode;
+            field.parentNode.removeChild(field);
+        }
+    </script>
 </body>
 </html>

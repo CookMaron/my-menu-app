@@ -6,8 +6,8 @@
 </head>
 <body>
     <h1>献立の探索結果</h1>
-    <p>手持ちの食材: {{ ', '.join(search_ingredients) }}</p>
-    <p>許容する不足食材数: {{ missing_count }}</p>
+    <p>検索方法: <strong>{{ search_type.upper() }}</strong> 検索</p>
+    <p>指定した食材: {{ ', '.join(search_ingredients) }}</p>
 
     {% if results %}
         <h2>見つかった献立</h2>
@@ -16,9 +16,6 @@
             <li>
                 <h3>{{ recipe.title }}</h3>
                 <p>必要な材料: {{ ', '.join(recipe.ingredients) }}</p>
-                {% if recipe.missing %}
-                    <p style="color:red;">** 足りない材料: {{ ', '.join(recipe.missing) }}</p>
-                {% endif %}
             </li>
         {% endfor %}
         </ul>
@@ -26,6 +23,6 @@
         <p>条件に合う献立は見つかりませんでした。</p>
     {% endif %}
 
-    <a href="{{ url_for('index', search_ingredients=search_ingredients | join(','), missing_count=missing_count) }}">トップページに戻る</a>
+    <a href="{{ url_for('index') }}">トップページに戻る</a>
 </body>
 </html>
