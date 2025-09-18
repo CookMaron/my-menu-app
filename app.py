@@ -1,10 +1,26 @@
+import os
+import json
 from flask import Flask, render_template, request, redirect, url_for
 
-# この行がすべてのウェブサイトの命令の「一番上」になければなりません。
 app = Flask(__name__)
 
-# 献立データ（仮のデータ）
-recipes = []
+# データファイル名
+DATA_FILE = 'recipes.json'
+
+def load_recipes():
+    """データファイルから献立を読み込む"""
+    if os.path.exists(DATA_FILE):
+        with open(DATA_FILE, 'r', encoding='utf-8') as f:
+            return json.load(f)
+    return []
+
+def save_recipes(recipes):
+    """献立をデータファイルに保存する"""
+    with open(DATA_FILE, 'w', encoding='utf-8') as f:
+        json.dump(recipes, f, ensure_ascii=False, indent=4)
+
+# 献立データ
+recipes = load_recipes()
 
 @app.route('/')
 def index():
@@ -40,6 +56,7 @@ def add_recipe():
         ingredients = list(ingredients_set)
 
         recipes.append({'title': title, 'ingredients': ingredients})
+        save_recipes(recipes)
         return redirect(url_for('index'))
     return render_template('add_recipe.html')
 
@@ -47,6 +64,7 @@ def add_recipe():
 def delete_recipe(title):
     global recipes
     recipes = [recipe for recipe in recipes if recipe['title'] != title]
+    save_recipes(recipes)
     return redirect(url_for('index'))
 
 @app.route('/search')
@@ -62,24 +80,3 @@ def search():
 
     results = []
     for recipe in recipes:
-        required_ingredients = set(recipe['ingredients'])
-        
-        # ユーザーが持っている食材と、レシピに必要な食材の共通部分を求める
-        common_ingredients = search_ingredients.intersection(required_ingredients)
-        
-        # レシピに必要なのに持っていない食材
-        missing_ingredients = list(required_ingredients - common_ingredients)
-        
-        # 不足している食材の数が指定した数以下であれば、結果に追加
-        if len(missing_ingredients) <= missing_count:
-            recipe_with_missing = recipe.copy()
-            recipe_with_missing['missing'] = missing_ingredients
-            results.append(recipe_with_missing)
-
-    return render_template('search_results.html', 
-                           results=results,
-                           search_ingredients=search_ingredients,
-                           missing_count=missing_count)
-
-if __name__ == '__main__':
-    app.run(debug=True)
